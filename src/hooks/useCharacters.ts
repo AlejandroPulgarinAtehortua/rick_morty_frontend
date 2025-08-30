@@ -30,37 +30,69 @@ export const useCharacters = (filter: Record<string, unknown>) => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const filterKey = JSON.stringify(filter);
+
+  // Resetear personajes y página cuando cambian los filtros
+  useEffect(() => {
+    setCharacters([]);
+    setPage(1);
+    setHasMore(true);
+  }, [filterKey]);
 
   useEffect(() => {
+    let isCancelled = false;
     const fetchCharacters = async () => {
       setLoading(true);
       setError(null);
       try {
+        const limit = 15;
         const data = await fetchGraphQL(
           `
-          query($filter: CharacterFilter) {
-            characters(filter: $filter) {
-              id
-              name
-              image
-              species
-              gender
+          query GetRMCharacters($page: Int, $name: String, $status: String, $species: String, $gender: String, $limit: Int) {
+            rmCharacters(page: $page, name: $name, status: $status, species: $species, gender: $gender, limit: $limit) {
+              info { count pages next prev }
+              results { id name status species gender image }
             }
           }
-        `,
-          { filter }
+          `,
+          {
+            page,
+            name: filter.name || undefined,
+            status: filter.status || undefined,
+            species: filter.species || undefined,
+            gender: filter.gender || undefined,
+            limit,
+          }
         );
-        setCharacters(data.characters);
+        if (!isCancelled) {
+          setCharacters(prev => {
+            // Si es la primera página, reinicia la lista; si no, agrega nuevos personajes sin duplicados
+            if (page === 1) return data.rmCharacters.results;
+            const existingIds = new Set(prev.map(c => c.id));
+            const newChars = data.rmCharacters.results.filter((c: Character) => !existingIds.has(c.id));
+            return [...prev, ...newChars];
+          });
+          setHasMore(!!data.rmCharacters.info.next);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        if (!isCancelled) setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
     fetchCharacters();
-  }, [filter]);
+    return () => { isCancelled = true; };
+  }, [page, filterKey]);
 
-  return { characters, loading, error };
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  return { characters, loading, error, hasMore, loadMore };
 };
 
 export const useFavoriteCharacters = (favoriteIds: string[]) => {
