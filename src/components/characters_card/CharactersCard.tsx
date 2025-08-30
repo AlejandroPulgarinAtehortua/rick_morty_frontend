@@ -30,9 +30,9 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
 
   return (
-    <article className="bg-[#f9f8ec] border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-full min-w-[220px] max-w-xs">
-      <div className="relative h-44 w-full bg-gray-100">
-        <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
+    <article className="bg-[#f9f8ec] border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-w-[220px] max-w-xs h-[480px] cursor-pointer transition-all transform hover:scale-105 hover:shadow-lg duration-400 ease-in-out">
+      <div className="relative w-full bg-gray-100 flex-shrink-0" style={{ height: 300 }}>
+        <img src={character.image} alt={character.name} className="w-full h-full object-cover" style={{ height: 300, width: '100%' }} />
         {getStatusBadge(character.status)}
         <button
           className="absolute right-2 top-2 bg-white/80 rounded-full p-1 hover:bg-white shadow"
@@ -45,15 +45,16 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character }) => {
           {isFavorite(String(character.id)) ? <FaHeart className="text-red-500" /> : <FaRegHeart className="text-gray-400" />}
         </button>
       </div>
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-4 flex-1 flex flex-col justify-between bg-white">
         <div>
-          <h3 className="text-lg font-semibold mb-1">{character.name}</h3>
+          <h3 className="text-2xl font-semibold mb-1 truncate" title={character.name}>{character.name}</h3>
           <div className="flex items-center gap-2 mb-1">
-            {getGenderIcon(character.gender || '')}
-            <span className="text-xs bg-gray-100 rounded px-2 py-0.5 text-gray-700">{character.species}</span>
+            
+            <span className="text-lg bg-gray-100 rounded px-2 py-0.5 text-gray-700">{character.species}</span>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            <span className="text-xs border border-gray-300 rounded px-2 py-0.5 text-gray-600">{character.gender}</span>
+          <div className="flex items-center flex-wrap gap-2 mt-2">
+            <span className="text-lg border border-gray-300 rounded px-2 py-0.5 text-gray-600">{character.gender}</span>
+            {getGenderIcon(character.gender || '')}
             {character.origin?.name && (
               <span className="text-xs border border-gray-300 rounded px-2 py-0.5 text-gray-600">{character.origin.name}</span>
             )}

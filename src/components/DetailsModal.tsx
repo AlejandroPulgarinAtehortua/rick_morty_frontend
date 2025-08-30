@@ -18,9 +18,9 @@ interface DetailsModalProps {
 import { FaRegCommentDots, FaMars, FaVenus, FaGenderless, FaTrashAlt } from "react-icons/fa";
 
 const getGenderBadge = (gender: string) => {
-  if (gender === "Male") return <span className="inline-flex items-center gap-1 bg-gray-100 text-xs px-2 py-0.5 rounded"><FaMars className="text-blue-500" />Male</span>;
-  if (gender === "Female") return <span className="inline-flex items-center gap-1 bg-gray-100 text-xs px-2 py-0.5 rounded"><FaVenus className="text-pink-500" />Female</span>;
-  return <span className="inline-flex items-center gap-1 bg-gray-100 text-xs px-2 py-0.5 rounded"><FaGenderless className="text-gray-400" />{gender}</span>;
+  if (gender === "Male") return <span className="inline-flex items-center gap-1 bg-gray-100 text-xl px-2 py-0.5 rounded"><FaMars className="text-blue-500" />Male</span>;
+  if (gender === "Female") return <span className="inline-flex items-center gap-1 bg-gray-100 text-xl px-2 py-0.5 rounded"><FaVenus className="text-pink-500" />Female</span>;
+  return <span className="inline-flex items-center gap-1 bg-gray-100 text-xl px-2 py-0.5 rounded"><FaGenderless className="text-gray-400" />{gender}</span>;
 };
 
 const getStatusBadge = (status: string) => {
@@ -28,7 +28,7 @@ const getStatusBadge = (status: string) => {
   if (status === "Alive") color = "bg-green-500";
   if (status === "Dead") color = "bg-red-500";
   if (status === "unknown") color = "bg-gray-300";
-  return <span className={`inline-block text-xs px-2 py-0.5 rounded text-white font-semibold ${color}`}>{status}</span>;
+  return <span className={`inline-block text-xl px-2 py-0.5 rounded text-white font-semibold ${color}`}>{status}</span>;
 };
 
 
@@ -56,10 +56,11 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, character, c
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-colors duration-80000 bg-black/0 ${open ? "bg-black/40" : ""}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-colors duration-300 bg-black/0 ${open ? "bg-black/70" : ""}`}
     >
       <div
-        className={`bg-white rounded-2xl shadow-xl max-w-lg w-full p-0 relative transform transition-all duration-300 ${open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-4"}`}
+        className={`bg-white rounded-2xl shadow-xl max-w-lg w-full h-auto p-0 relative transform transition-all duration-300 ${
+          open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-4"}`}
       >
         <button
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold z-10"
@@ -69,39 +70,39 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, character, c
           ×
         </button>
         <div className="p-6 pb-0">
-          <h2 className="text-xl font-bold mb-3">{character.name}</h2>
+          <h2 className="text-3xl text-gray-700 font-bold mb-3">{character.name}</h2>
           <div className="flex flex-row gap-6">
             <div className="flex-shrink-0">
               <img
                 src={character.image}
                 alt={character.name}
-                className="w-36 h-36 object-cover rounded-lg border"
+                className="w-50 h-50 object-cover rounded-full "
               />
             </div>
-            <div className="flex flex-col gap-2 flex-1 mt-1">
+            <div className="flex flex-col gap-2 mt-10 flex-1 mt-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-xs text-gray-600">Status</span>
+                <span className="font-semibold text-xl text-gray-600">Status: </span>
                 {getStatusBadge(character.status)}
               </div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-xs text-gray-600">Species</span>
-                <span className="inline-block text-xs px-2 py-0.5 rounded bg-gray-100 font-medium text-gray-700">{character.species}</span>
+                <span className="font-semibold text-xl text-gray-600">Species: </span>
+                <span className="inline-block text-xl px-2 py-0.5 rounded bg-gray-100 font-medium text-gray-700">{character.species}</span>
               </div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-xs text-gray-600">Gender</span>
+                <span className="font-semibold text-xl text-gray-600">Gender: </span>
                 {getGenderBadge(character.gender)}
               </div>
             </div>
           </div>
         </div>
-        <div className="border-t mt-6 px-6 pb-6 pt-4">
+        <div className="mt-6 px-6 pb-6 pt-4">
           <div className="flex items-center gap-2 mb-2">
             <FaRegCommentDots className="text-green-600" />
-            <span className="font-semibold text-gray-700">Comments</span>
+            <span className="font-semibold text-xl text-gray-700">Comments</span>
           </div>
           <form className="mb-3" onSubmit={handleSubmit}>
             <input
-              className="w-full mb-2 px-3 py-2 border rounded text-sm focus:outline-none focus:ring"
+              className="w-full mb-2 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring"
               placeholder="Your name (optional)"
               type="text"
               value={name}
@@ -109,7 +110,7 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, character, c
               maxLength={32}
             />
             <textarea
-              className="w-full mb-2 px-3 py-2 border rounded text-sm focus:outline-none focus:ring"
+              className="w-full mb-2 px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring"
               placeholder="Add a comment about this character..."
               rows={2}
               value={comment}
@@ -130,9 +131,9 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, character, c
               No comments yet. Be the first to comment!
             </div>
           ) : (
-            <ul className="space-y-2 mt-2">
+            <ul className="space-y-2 mt-10">
               {comments.map((c, idx) => (
-                <li key={idx} className="bg-gray-50 rounded p-2 border flex flex-col gap-1 relative group">
+                <li key={idx} className="bg-gray-50 rounded p-2 border border-gray-200 flex flex-col gap-1 relative group">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-semibold text-xs text-gray-700">{c.name}</span>
                     <span className="text-xs text-gray-400">{new Date(c.date).toLocaleString()}</span>

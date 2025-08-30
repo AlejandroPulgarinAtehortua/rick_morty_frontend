@@ -2,7 +2,8 @@ import Header from "../components/Header";
 import CharacterCard from "../components/characters_card/CharactersCard";
 import { useCharacters } from "../hooks/useCharacters";
 import type { Character } from "../hooks/useCharacters";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Loader from "../components/Loader";
 import DetailsModal from "../components/DetailsModal";
 import CharacterFilters from "../components/CharacterFilters";
@@ -26,6 +27,9 @@ const Home = () => {
   const [filters, setFilters] = useState(defaultFilters);
   const [showFavorites, setShowFavorites] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterFull | null>(null);
+  const navigate = useNavigate();
+  const { id: routeId } = useParams<{ id: string }>();
+  const location = useLocation();
   const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az');
 
   // Obtener ids favoritos del localStorage
@@ -34,7 +38,7 @@ const Home = () => {
     try {
       const favs = localStorage.getItem('favorites');
       if (favs) return JSON.parse(favs);
-    } catch {}
+    } catch { }
     return [];
   };
 
@@ -63,6 +67,23 @@ const Home = () => {
     return chars;
   }, [characters, favoriteCharacters, sortOrder, showFavorites]);
 
+  // Sincroniza el modal con la URL
+  useEffect(() => {
+    if (routeId) {
+      // Busca el personaje por id en la lista actual
+      const allChars = showFavorites ? favoriteCharacters : characters;
+      const found = allChars.find(c => String(c.id) === routeId);
+      if (found) {
+        setSelectedCharacter(found);
+      } else {
+        setSelectedCharacter(null);
+      }
+    } else {
+      setSelectedCharacter(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeId, characters, favoriteCharacters, showFavorites]);
+
   return (
     <>
       <Header />
@@ -70,8 +91,8 @@ const Home = () => {
         <div className="w-full md:w-1/3 lg:w-1/4 mb-6 md:mb-0">
           <CharacterFilters
             filters={filters}
-            onChange={f => {
-              setFilters(f);
+            onChange={filter => {
+              setFilters(filter);
               setShowFavorites(false);
             }}
             onShowFavorites={() => {
@@ -113,7 +134,7 @@ const Home = () => {
               };
               // Cuando se elimina un favorito, forzar actualización
               const handleSelect = () => {
-                setSelectedCharacter(characterFull);
+                navigate(`/character/${character.id}`, { state: { from: location } });
                 if (showFavorites) handleFavoriteChange();
               };
               return (
@@ -132,7 +153,7 @@ const Home = () => {
             <div className="flex justify-center mt-6">
               <button
                 onClick={loadMore}
-                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded shadow"
+                className="bg-green-500 hover:bg-green-600 mb-10 text-white font-semibold px-6 py-2 rounded shadow cursor-pointer"
               >
                 Load more
               </button>
@@ -142,7 +163,14 @@ const Home = () => {
       </div>
       <DetailsModal
         open={!!selectedCharacter}
-        onClose={() => setSelectedCharacter(null)}
+        onClose={() => {
+          // Cierra el modal navegando a la ruta anterior o raíz
+          if (location.state && (location.state as any).from) {
+            navigate((location.state as any).from.pathname, { replace: true });
+          } else {
+            navigate("/", { replace: true });
+          }
+        }}
         character={selectedCharacter || { name: '', image: '', status: '', species: '', gender: '' }}
       >
         {/* Aquí puedes agregar los comentarios u otros children si lo deseas */}
