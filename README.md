@@ -15,7 +15,7 @@ Este proyecto es una aplicación web construida con React, Vite y TypeScript que
 
 1. Clona el repositorio:
   ```bash
-  git clone <url-del-repo>
+  git clone https://github.com/AlejandroPulgarinAtehortua/rick_morty_frontend
   cd rick-morty-frontend
   ```
 2. Instala las dependencias:
