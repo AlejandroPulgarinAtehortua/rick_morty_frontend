@@ -48,13 +48,11 @@ const CharacterFilters: React.FC<CharacterFiltersProps> = ({ filters, onChange, 
   const [localFilters, setLocalFilters] = useState(filters);
 
 
-  // Para el input de nombre
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setLocalFilters(prev => ({ ...prev, name: value }));
   };
 
-  // Para los selectores, aplicar filtro automáticamente
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updated = { ...localFilters, [name]: value };
@@ -143,7 +141,6 @@ const CharacterFilters: React.FC<CharacterFiltersProps> = ({ filters, onChange, 
           <button
             type="button"
             onClick={() => {
-              // Leer favoritos del localStorage y notificar al padre
               onShowFavorites();
             }}
             className="w-full flex items-center mt-7 justify-center gap-2 border border-gray-300 rounded py-2 text-gray-700 hover:bg-green-400 transition"

@@ -1,12 +1,13 @@
 import Header from "../components/Header";
 import CharacterCard from "../components/characters_card/CharactersCard";
 import { useCharacters } from "../hooks/useCharacters";
-import type { Character } from "../hooks/useCharacters";
 import { useMemo, useState, useEffect } from "react";
+import type { Character } from "../interfaces/characters";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Loader from "../components/Loader";
 import DetailsModal from "../components/DetailsModal";
 import CharacterFilters from "../components/CharacterFilters";
+import ErrorMessage from "../components/ErrorMessage";
 import { useFavoriteCharacters } from "../hooks/useCharacters";
 
 
@@ -17,34 +18,25 @@ const defaultFilters = {
   gender: '',
 };
 
-// Extiende Character para incluir status y origin (opcional)
-type CharacterFull = Character & {
-  status?: string;
-  origin?: { name?: string };
-};
 
 const Home = () => {
   const [filters, setFilters] = useState(defaultFilters);
   const [showFavorites, setShowFavorites] = useState(false);
-  const [selectedCharacter, setSelectedCharacter] = useState<CharacterFull | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const navigate = useNavigate();
   const { id: routeId } = useParams<{ id: string }>();
   const location = useLocation();
   const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az');
 
-  // Obtener ids favoritos del localStorage
-  // import { useMemo } from "react";
   const getFavoriteIds = () => {
     try {
       const favs = localStorage.getItem('favorites');
       if (favs) return JSON.parse(favs);
-    } catch { }
+    } catch { console.error("Failed to parse favorites from localStorage"); }
     return [];
   };
 
-  // Estado para forzar actualización de favoritos
   const [favUpdate, setFavUpdate] = useState(0);
-  // Siempre lee los ids actuales del localStorage
   const favoriteIds = useMemo(() => getFavoriteIds(), [favUpdate]);
   const {
     characters: favoriteCharacters,
@@ -52,10 +44,10 @@ const Home = () => {
     error: favError
   } = useFavoriteCharacters(favoriteIds);
 
-  // Función para actualizar favoritos tras eliminar
   const handleFavoriteChange = () => setFavUpdate(u => u + 1);
 
-  const { characters, loading, error, hasMore, loadMore } = useCharacters(filters);
+  const [retryKey, setRetryKey] = useState(0);
+  const { characters, loading, error, hasMore, loadMore } = useCharacters({ ...filters, retryKey });
 
   const sortedCharacters = useMemo(() => {
     const chars = showFavorites ? [...favoriteCharacters] : [...characters];
@@ -67,12 +59,13 @@ const Home = () => {
     return chars;
   }, [characters, favoriteCharacters, sortOrder, showFavorites]);
 
-  // Sincroniza el modal con la URL
+  const handleRetry = () => setRetryKey(k => k + 1);
+  const handleFavRetry = () => handleFavoriteChange();
+
   useEffect(() => {
     if (routeId) {
-      // Busca el personaje por id en la lista actual
       const allChars = showFavorites ? favoriteCharacters : characters;
-      const found = allChars.find(c => String(c.id) === routeId);
+      const found = allChars.find(character => String(character.id) === routeId);
       if (found) {
         setSelectedCharacter(found);
       } else {
@@ -81,7 +74,6 @@ const Home = () => {
     } else {
       setSelectedCharacter(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeId, characters, favoriteCharacters, showFavorites]);
 
   return (
@@ -97,7 +89,7 @@ const Home = () => {
             }}
             onShowFavorites={() => {
               setShowFavorites(true);
-              handleFavoriteChange(); // fuerza actualización al mostrar favoritos
+              handleFavoriteChange();
             }}
           />
         </div>
@@ -123,16 +115,24 @@ const Home = () => {
           </div>
           {(showFavorites ? favLoading : loading) && <Loader />}
           {(showFavorites ? favError : error) && (
-            <div className="mb-4 text-red-500">Error: {(showFavorites ? favError : error)?.message}</div>
+            <ErrorMessage
+              message={
+                showFavorites
+                  ? favError?.message || "Error loading favorites."
+                  : error?.message || "Error loading characters."
+              }
+              onRetry={showFavorites ? handleFavRetry : handleRetry}
+              className="mb-4"
+            />
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {sortedCharacters.length > 0 && sortedCharacters.map(character => {
-              const characterFull: CharacterFull = {
+              const characterFull: Character = {
                 ...character,
-                status: (character as any).status ?? '',
-                origin: (character as any).origin ?? undefined,
+                id: typeof character.id === "string" ? Number(character.id) : character.id,
+                status: character?.status ?? '',
+                origin: character?.origin ?? undefined,
               };
-              // Cuando se elimina un favorito, forzar actualización
               const handleSelect = () => {
                 navigate(`/character/${character.id}`, { state: { from: location } });
                 if (showFavorites) handleFavoriteChange();
@@ -149,31 +149,29 @@ const Home = () => {
               );
             })}
           </div>
-          {!showFavorites && hasMore && !loading && (
-            <div className="flex justify-center mt-6">
-              <button
-                onClick={loadMore}
-                className="bg-green-500 hover:bg-green-600 mb-10 text-white font-semibold px-6 py-2 rounded shadow cursor-pointer"
-              >
-                Load more
-              </button>
-            </div>
-          )}
+            {!showFavorites && hasMore && !loading && !error && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={loadMore}
+                  className="bg-green-500 hover:bg-green-600 mb-10 text-white font-semibold px-6 py-2 rounded shadow cursor-pointer"
+                >
+                  Load more
+                </button>
+              </div>
+            )}
         </div>
       </div>
       <DetailsModal
         open={!!selectedCharacter}
         onClose={() => {
-          // Cierra el modal navegando a la ruta anterior o raíz
-          if (location.state && (location.state as any).from) {
-            navigate((location.state as any).from.pathname, { replace: true });
+          if (location.state && (location.state).from) {
+            navigate((location.state).from.pathname, { replace: true });
           } else {
             navigate("/", { replace: true });
           }
         }}
         character={selectedCharacter || { name: '', image: '', status: '', species: '', gender: '' }}
       >
-        {/* Aquí puedes agregar los comentarios u otros children si lo deseas */}
       </DetailsModal>
     </>
   );

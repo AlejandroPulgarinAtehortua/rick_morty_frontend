@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-
-export interface Character {
-  id: string;
-  name: string;
-  image: string;
-  species: string;
-  gender: string;
-}
+import type { Character as CharacterType } from "../interfaces/characters";
 
 const fetchGraphQL = async (query: string, variables?: Record<string, unknown>) => {
   const response = await fetch("http://localhost:3001/graphql", {
@@ -27,14 +20,13 @@ const fetchGraphQL = async (query: string, variables?: Record<string, unknown>) 
 };
 
 export const useCharacters = (filter: Record<string, unknown>) => {
-  const [characters, setCharacters] = useState<Character[]>([]);
+  const [characters, setCharacters] = useState<CharacterType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const filterKey = JSON.stringify(filter);
 
-  // Resetear personajes y página cuando cambian los filtros
   useEffect(() => {
     setCharacters([]);
     setPage(1);
@@ -68,10 +60,9 @@ export const useCharacters = (filter: Record<string, unknown>) => {
         );
         if (!isCancelled) {
           setCharacters(prev => {
-            // Si es la primera página, reinicia la lista; si no, agrega nuevos personajes sin duplicados
             if (page === 1) return data.rmCharacters.results;
             const existingIds = new Set(prev.map(c => c.id));
-            const newChars = data.rmCharacters.results.filter((c: Character) => !existingIds.has(c.id));
+            const newChars = data.rmCharacters.results.filter((c: CharacterType) => !existingIds.has(c.id));
             return [...prev, ...newChars];
           });
           setHasMore(!!data.rmCharacters.info.next);
@@ -125,9 +116,7 @@ export const useFavoriteCharacters = (favoriteIds: string[]) => {
             if (data.character) {
               results.push(data.character);
             }
-          } catch (err) {
-            // Si una petición falla, continúa con las demás
-          }
+          } catch (err) {}
         }
         if (!isCancelled) setCharacters(results);
       } catch (err) {

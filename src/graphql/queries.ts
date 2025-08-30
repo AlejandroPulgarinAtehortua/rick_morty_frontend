@@ -1,22 +1,3 @@
-// import { gql } from "@apollo/client";
-
-// export const GET_RM_CHARACTERS = gql`
-//   query GetRmCharacters($page: Int, $name: String, $status: String, $species: String, $gender: String) {
-//     rmCharacters(page: $page, name: $name, status: $status, species: $species, gender: $gender) {
-//       info { count pages next prev }
-//       results { id name status species gender image origin }
-//     }
-//   }
-// `;
-
-// export const GET_RM_CHARACTER = gql`
-//   query GetRmCharacter($id: Int!) {
-//     rmCharacter(id: $id) {
-//       id name status species gender image origin
-//     }
-//   }
-// `;
-
 export const GET_CHARACTERS = `
   query GetCharacters($filter: CharacterFilter) {
     characters(filter: $filter) {

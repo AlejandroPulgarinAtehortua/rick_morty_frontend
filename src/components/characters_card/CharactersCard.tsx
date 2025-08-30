@@ -5,12 +5,12 @@ import { useFavorites } from "../../context/FavoritesContext";
 
 interface CharacterCardProps {
   character: CharacterType & {
-    gender?: string;
-    origin?: { name?: string };
+    gender?: string | undefined;
+    origin?: { name?: string | undefined };
   };
 }
 
-const getGenderIcon = (gender: string) => {
+const getGenderIcon = (gender: string | undefined) => {
   if (gender === "Female") return <FaVenus className="inline mr-1 text-pink-500" title="Female" />;
   if (gender === "Male") return <FaMars className="inline mr-1 text-blue-500" title="Male" />;
   return <FaGenderless className="inline mr-1 text-gray-400" title="Genderless" />;

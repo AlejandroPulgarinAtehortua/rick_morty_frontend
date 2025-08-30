@@ -56,11 +56,12 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, character, c
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-colors duration-300 bg-black/0 ${open ? "bg-black/70" : ""}`}
+      className={`fixed overflow-y-scroll inset-0 z-50 flex items-center justify-center transition-colors duration-300 bg-black/0 ${open ? "bg-black/70" : ""}`}
     >
       <div
         className={`bg-white rounded-2xl shadow-xl max-w-lg w-full h-auto p-0 relative transform transition-all duration-300 ${
           open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-4"}`}
+        style={{ maxHeight: '80vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
       >
         <button
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold z-10"

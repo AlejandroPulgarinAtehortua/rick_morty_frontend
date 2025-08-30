@@ -8,7 +8,7 @@ const Header: React.FC = () => {
 
         <div>
           <h1 className="text-5xl font-bold text-foreground text-gray-600">Rick & Morty</h1>
-          <p className="text-sm text-muted-foreground text-gray-500">Character Explorer</p>
+          <p className="text-sm text-muted-foreground text-gray-500">Characters</p>
         </div>
       </div>
     </header>
