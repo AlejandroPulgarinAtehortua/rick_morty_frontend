@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { useComments } from "../context/CommentsContext";
+import type { Character } from "../interfaces/characters";
 
 interface DetailsModalProps {
   open: boolean;
   onClose: () => void;
-  character: {
-    name: string;
-    image: string;
-    status: string;
-    species: string;
-    gender: string;
-  };
+  character: Character;
   children?: React.ReactNode;
 }
 
@@ -39,7 +34,7 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ open, onClose, character, c
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
   if (!open) return null;
-  const characterId = String((character as any).id || character.name);
+  const characterId = String(character.id || character.name);
   const comments = getComments(characterId);
 
   const handleSubmit = (e: React.FormEvent) => {

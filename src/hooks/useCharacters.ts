@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Character as CharacterType } from "../interfaces/characters";
 
 const fetchGraphQL = async (query: string, variables?: Record<string, unknown>) => {
-  const response = await fetch("http://localhost:3001/graphql", {
+  const response = await fetch(import.meta.env.VITE_GRAPHQL_HTTP, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -87,9 +87,9 @@ export const useCharacters = (filter: Record<string, unknown>) => {
 };
 
 export const useFavoriteCharacters = (favoriteIds: string[]) => {
-  const [characters, setCharacters] = useState<any[]>([]);
+  const [characters, setCharacters] = useState<CharacterType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -97,7 +97,7 @@ export const useFavoriteCharacters = (favoriteIds: string[]) => {
       setLoading(true);
       setError(null);
       try {
-        const results: any[] = [];
+        const results: CharacterType[] = [];
         for (const id of favoriteIds) {
           try {
             const data = await fetchGraphQL(`
@@ -116,7 +116,9 @@ export const useFavoriteCharacters = (favoriteIds: string[]) => {
             if (data.character) {
               results.push(data.character);
             }
-          } catch (err) {}
+          } catch (err) {
+            console.log("Error fetching favorite character:", err);
+          }
         }
         if (!isCancelled) setCharacters(results);
       } catch (err) {

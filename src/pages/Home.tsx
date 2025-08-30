@@ -59,7 +59,7 @@ const Home = () => {
     return chars;
   }, [characters, favoriteCharacters, sortOrder, showFavorites]);
 
-  const handleRetry = () => setRetryKey(k => k + 1);
+  const handleRetry = () => setRetryKey(key => key + 1);
   const handleFavRetry = () => handleFavoriteChange();
 
   useEffect(() => {
@@ -106,7 +106,7 @@ const Home = () => {
                 id="sort"
                 value={sortOrder}
                 onChange={e => setSortOrder(e.target.value as 'az' | 'za')}
-                className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring"
+                className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring"
               >
                 <option value="az">A-Z</option>
                 <option value="za">Z-A</option>
@@ -170,7 +170,17 @@ const Home = () => {
             navigate("/", { replace: true });
           }
         }}
-        character={selectedCharacter || { name: '', image: '', status: '', species: '', gender: '' }}
+        character={selectedCharacter || {
+              id: 0,
+              name: '',
+              status: '',
+              species: '',
+              gender: '',
+              origin: {
+                name: '',
+              },
+              image: '',
+            }}
       >
       </DetailsModal>
     </>
