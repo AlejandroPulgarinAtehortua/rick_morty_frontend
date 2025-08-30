@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import Loader from "../components/Loader";
 import DetailsModal from "../components/DetailsModal";
 import CharacterFilters from "../components/CharacterFilters";
+import { useFavoriteCharacters } from "../hooks/useCharacters";
 
 
 const defaultFilters = {
@@ -23,30 +24,69 @@ type CharacterFull = Character & {
 
 const Home = () => {
   const [filters, setFilters] = useState(defaultFilters);
-  const { characters, loading, error, hasMore, loadMore } = useCharacters(filters);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterFull | null>(null);
   const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az');
 
+  // Obtener ids favoritos del localStorage
+  // import { useMemo } from "react";
+  const getFavoriteIds = () => {
+    try {
+      const favs = localStorage.getItem('favorites');
+      if (favs) return JSON.parse(favs);
+    } catch {}
+    return [];
+  };
+
+  // Estado para forzar actualización de favoritos
+  const [favUpdate, setFavUpdate] = useState(0);
+  // Siempre lee los ids actuales del localStorage
+  const favoriteIds = useMemo(() => getFavoriteIds(), [favUpdate]);
+  const {
+    characters: favoriteCharacters,
+    loading: favLoading,
+    error: favError
+  } = useFavoriteCharacters(favoriteIds);
+
+  // Función para actualizar favoritos tras eliminar
+  const handleFavoriteChange = () => setFavUpdate(u => u + 1);
+
+  const { characters, loading, error, hasMore, loadMore } = useCharacters(filters);
+
   const sortedCharacters = useMemo(() => {
-    const chars = [...characters];
+    const chars = showFavorites ? [...favoriteCharacters] : [...characters];
     chars.sort((a, b) => {
       if (!a.name || !b.name) return 0;
       if (sortOrder === 'az') return a.name.localeCompare(b.name);
       return b.name.localeCompare(a.name);
     });
     return chars;
-  }, [characters, sortOrder]);
+  }, [characters, favoriteCharacters, sortOrder, showFavorites]);
 
   return (
     <>
       <Header />
       <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-1/3 lg:w-1/4 mb-6 md:mb-0">
-          <CharacterFilters filters={filters} onChange={setFilters} />
+          <CharacterFilters
+            filters={filters}
+            onChange={f => {
+              setFilters(f);
+              setShowFavorites(false);
+            }}
+            onShowFavorites={() => {
+              setShowFavorites(true);
+              handleFavoriteChange(); // fuerza actualización al mostrar favoritos
+            }}
+          />
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2 mt-4">
-            <div className="text-sm text-gray-500">Showing {characters.length} characters</div>
+            <div className="text-sm text-gray-500">
+              {showFavorites
+                ? `Showing ${favoriteCharacters.length} favorite characters`
+                : `Showing ${characters.length} characters`}
+            </div>
             <div className="flex items-center gap-2">
               <label htmlFor="sort" className="text-sm text-gray-600 font-medium">Sort by name:</label>
               <select
@@ -60,21 +100,27 @@ const Home = () => {
               </select>
             </div>
           </div>
-          {loading && <Loader />}
-          {error && <div className="mb-4 text-red-500">Error: {error && error.message}</div>}
+          {(showFavorites ? favLoading : loading) && <Loader />}
+          {(showFavorites ? favError : error) && (
+            <div className="mb-4 text-red-500">Error: {(showFavorites ? favError : error)?.message}</div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {sortedCharacters.length > 0 && sortedCharacters.map(character => {
-              // Asegura que el objeto tenga las props requeridas
               const characterFull: CharacterFull = {
                 ...character,
                 status: (character as any).status ?? '',
                 origin: (character as any).origin ?? undefined,
               };
+              // Cuando se elimina un favorito, forzar actualización
+              const handleSelect = () => {
+                setSelectedCharacter(characterFull);
+                if (showFavorites) handleFavoriteChange();
+              };
               return (
                 <button
                   key={character.id}
                   className="text-left focus:outline-none"
-                  onClick={() => setSelectedCharacter(characterFull)}
+                  onClick={handleSelect}
                   style={{ background: "none", border: "none", padding: 0 }}
                 >
                   <CharacterCard character={characterFull} />
@@ -82,7 +128,7 @@ const Home = () => {
               );
             })}
           </div>
-          {hasMore && !loading && (
+          {!showFavorites && hasMore && !loading && (
             <div className="flex justify-center mt-6">
               <button
                 onClick={loadMore}

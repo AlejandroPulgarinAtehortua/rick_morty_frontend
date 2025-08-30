@@ -96,30 +96,44 @@ export const useCharacters = (filter: Record<string, unknown>) => {
 };
 
 export const useFavoriteCharacters = (favoriteIds: string[]) => {
-  const [characters, setCharacters] = useState([]);
+  const [characters, setCharacters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
+    let isCancelled = false;
     const fetchFavoriteCharacters = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchGraphQL(`
-          query($ids: [ID!]!) {
-            charactersByIds(ids: $ids) {
-              id
-              name
-              image
+        const results: any[] = [];
+        for (const id of favoriteIds) {
+          try {
+            const data = await fetchGraphQL(`
+              query($id: ID!) {
+                character(id: $id) {
+                  id
+                  name
+                  image
+                  status
+                  species
+                  gender
+                  origin
+                }
+              }
+            `, { id });
+            if (data.character) {
+              results.push(data.character);
             }
+          } catch (err) {
+            // Si una petición falla, continúa con las demás
           }
-        `, { ids: favoriteIds });
-
-        setCharacters(data.charactersByIds);
+        }
+        if (!isCancelled) setCharacters(results);
       } catch (err) {
-        setError(err.message);
+        if (!isCancelled) setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
 
@@ -129,6 +143,7 @@ export const useFavoriteCharacters = (favoriteIds: string[]) => {
       setCharacters([]);
       setLoading(false);
     }
+    return () => { isCancelled = true; };
   }, [favoriteIds]);
 
   return { characters, loading, error };

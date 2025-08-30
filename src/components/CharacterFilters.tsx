@@ -11,6 +11,13 @@ interface CharacterFiltersProps {
   onShowFavorites?: () => void;
 }
 
+const defaultFilters = {
+  name: '',
+  status: '',
+  species: '',
+  gender: '',
+};
+
 const statusOptions = [
   { value: "", label: "All statuses" },
   { value: "alive", label: "Alive" },
@@ -74,12 +81,24 @@ const CharacterFilters: React.FC<CharacterFiltersProps> = ({ filters, onChange, 
           placeholder="Search characters..."
           className="w-full mb-2 px-3 py-2 border rounded text-sm focus:outline-none focus:ring"
         />
-        <button
-          type="submit"
-          className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded mb-4 transition"
-        >
-          Search
-        </button>
+        <div className="flex gap-2 mb-4">
+          <button
+            type="submit"
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded transition"
+          >
+            Search
+          </button>
+          <button
+            type="button"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded transition border"
+            onClick={() => {
+              setLocalFilters(defaultFilters);
+              onChange(defaultFilters);
+            }}
+          >
+            Clear filters
+          </button>
+        </div>
         <div className="mb-2">
           <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
           <select
@@ -122,7 +141,10 @@ const CharacterFilters: React.FC<CharacterFiltersProps> = ({ filters, onChange, 
         {onShowFavorites && (
           <button
             type="button"
-            onClick={onShowFavorites}
+            onClick={() => {
+              // Leer favoritos del localStorage y notificar al padre
+              onShowFavorites();
+            }}
             className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded py-2 text-gray-700 hover:bg-gray-200 transition"
           >
             <span role="img" aria-label="heart">♡</span> Show Favorites
